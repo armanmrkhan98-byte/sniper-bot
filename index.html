@@ -1,204 +1,230 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AMIR FX AI BOT - Pocket Option</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #030712; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
-        .glow-box { box-shadow: 0 0 25px rgba(6, 182, 212, 0.15); }
-        .glow-btn { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amir FX AI Signal Bot</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;background:#020a18;color:#eaf6ff;
+  font-family:Arial,sans-serif;padding:18px;
+}
+.app{max-width:480px;margin:auto}
+.header{
+  padding:20px;background:#06172c;border:1px solid #123b60;
+  border-radius:20px;margin-bottom:18px;
+}
+h2{color:#17caff;margin:0 0 8px}
+.small{color:#91a8c4;font-size:13px}
+.panel{
+  background:#07172b;border:1px solid #123c60;
+  border-radius:18px;padding:18px;margin-bottom:16px;
+}
+.row{display:flex;gap:10px;margin:12px 0}
+.field{flex:1;min-width:0}
+label{display:block;color:#8ca8c7;font-size:12px;margin-bottom:8px}
+select,button{
+  width:100%;padding:13px;border-radius:10px;
+  border:1px solid #17466c;background:#0b2038;
+  color:white;font-size:14px;
+}
+button{cursor:pointer;font-weight:bold}
+button:active{transform:scale(.98)}
+.market{flex:1}
+.market.active{border-color:#00caff;color:#12d7ff}
+.status{color:#ffce59;font-weight:bold}
+.engine{
+  text-align:center;padding:30px 10px;
+  border:2px solid #10547c;border-radius:50%;
+  width:255px;height:255px;margin:25px auto;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  box-shadow:0 0 25px #003c68;
+}
+.bolt{font-size:48px;color:#ffce00;margin:12px}
+#signal{font-size:25px;font-weight:bold;margin:10px}
+.buy{color:#32ed9a}
+.sell{color:#ff627e}
+.neutral{color:#16caff}
+.mainbtn{background:#007fb9;border:0;font-size:17px}
+.stopbtn{background:#65263a;border:0}
+.note{font-size:12px;color:#91a8c4;line-height:1.6}
+.history{font-size:13px;line-height:2}
+</style>
 </head>
-<body class="min-h-screen p-3 md:p-6 pb-12">
-    <div class="max-w-md mx-auto space-y-4">
-        
-        <!-- Top Header & Active Traders -->
-        <div class="flex justify-between items-center bg-slate-900/80 border border-slate-800 rounded-2xl p-3 px-4 shadow-lg">
-            <div class="flex items-center space-x-2">
-                <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span class="text-xs font-bold tracking-wider text-slate-300">AMIR FX AI BOT</span>
-            </div>
-            <div class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                🟢 2,380 ACTIVE TRADERS
-            </div>
-        </div>
 
-        <!-- Pair & Win Rate Bar -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex justify-between items-center shadow-lg">
-            <div>
-                <span class="text-xs text-slate-400 block">SELECTED PAIR</span>
-                <span id="currentPairDisplay" class="text-lg font-extrabold text-cyan-400">BTC/USD (OTC)</span>
-            </div>
-            <div class="text-right">
-                <span class="text-xs text-slate-400 block">ACCURACY WIN</span>
-                <span class="text-lg font-extrabold text-emerald-400">📈 91%</span>
-            </div>
-        </div>
+<body>
+<div class="app">
 
-        <!-- Market & Broker Status Grid -->
-        <div class="grid grid-cols-2 gap-3">
-            <!-- Market Type Selector -->
-            <div class="bg-slate-900/80 border border-cyan-500/30 rounded-2xl p-3 text-center glow-box">
-                <div class="text-xs font-bold text-cyan-400 mb-1">OTC MARKET</div>
-                <div class="text-[10px] text-slate-400">3s - 15m (All Pairs)</div>
-            </div>
-            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3 text-center opacity-60">
-                <div class="text-xs font-bold text-slate-300 mb-1">LIVE MARKET</div>
-                <div class="text-[10px] text-slate-500">1m - 15m Standard</div>
-            </div>
-        </div>
+  <div class="header">
+    <h2>⚡ AMIR FX AI BOT</h2>
+    <div class="small">POCKET OPTION • SIGNAL DASHBOARD</div>
+    <p>● <span class="status" id="status">Standby</span></p>
+    <div class="small">Demo interface — real broker connection nahi hai</div>
+  </div>
 
-        <!-- Broker & Connection Status -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex justify-between items-center">
-            <div>
-                <span class="text-[10px] text-slate-400 block uppercase">Broker</span>
-                <span class="text-sm font-bold text-white">POCKET OPTION</span>
-            </div>
-            <div class="text-right">
-                <span class="text-[10px] text-slate-400 block uppercase">Status</span>
-                <span class="text-xs font-bold text-emerald-400 flex items-center justify-end space-x-1">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>Connected (Amir-01)</span>
-                </span>
-            </div>
-        </div>
-
-        <!-- AI Signal Engine Main Circular Box -->
-        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-cyan-500/30 rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden glow-box">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-xs font-bold tracking-widest text-cyan-400">⚡ AI SIGNAL ENGINE</span>
-                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30 font-mono">99.7% UPTIME</span>
-            </div>
-
-            <!-- Circular Radar Look -->
-            <div class="w-48 h-48 mx-auto my-6 rounded-full border-2 border-cyan-500/20 flex flex-col items-center justify-center relative bg-slate-950/50 shadow-inner">
-                <div class="absolute inset-0 rounded-full border border-cyan-500/10 animate-ping opacity-25"></div>
-                <div id="signalStateText" class="text-xs font-bold tracking-widest text-amber-400 mb-1">STANDBY</div>
-                <div class="text-3xl my-1">⚡</div>
-                <div id="mainSignalOutput" class="text-xl font-extrabold text-slate-300">PRESS START</div>
-            </div>
-
-            <!-- Controls: Pair & Timeframe Selector -->
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                    <label class="block text-[10px] text-slate-400 mb-1 text-left">Asset Pair</label>
-                    <select id="botPairSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-                        <option value="BTCUSD_OTC">BTC/USD (OTC)</option>
-                        <option value="EURUSD_OTC">EUR/USD (OTC)</option>
-                        <option value="GBPUSD_OTC">GBP/USD (OTC)</option>
-                        <option value="Gold_OTC">Gold (OTC)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] text-slate-400 mb-1 text-left">Timeframe</label>
-                    <select id="botTfSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-                        <option value="3">3 Seconds</option>
-                        <option value="5">5 Seconds</option>
-                        <option value="30">30 Seconds</option>
-                        <option value="60">1 Minute</option>
-                        <option value="240" selected>4 Minutes (240s)</option>
-                        <option value="300">5 Minutes</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <button onclick="triggerAiSignal()" class="w-full bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3.5 rounded-2xl transition glow-btn text-sm tracking-wider uppercase shadow-lg">
-                🚀 START BOT / GET SIGNAL
-            </button>
-        </div>
-
-        <!-- Live Trade Execution Panel -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3">
-            <div class="flex justify-between items-center text-xs text-slate-400">
-                <span>TRADE AMOUNT ($)</span>
-                <input type="number" id="tradeAmount" value="10" class="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-right text-white font-bold text-xs">
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="executeTrade('CALL')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition text-xs shadow-lg shadow-emerald-600/30">
-                    📈 CALL (HIGHER)
-                </button>
-                <button onclick="executeTrade('PUT')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl transition text-xs shadow-lg shadow-rose-600/30">
-                    📉 PUT (LOWER)
-                </button>
-            </div>
-        </div>
-
-        <!-- Activity Log Box -->
-        <div class="bg-slate-950 border border-slate-900 rounded-2xl p-3 text-[10px] font-mono text-slate-400 h-24 overflow-y-auto" id="logBox">
-            [System] Amir FX AI Bot UI initialized successfully. Ready to connect...
-        </div>
-
+  <div class="panel">
+    <div class="row">
+      <button class="market active" id="otc"
+        onclick="setMarket('OTC')">OTC MARKET</button>
+      <button class="market" id="live"
+        onclick="setMarket('LIVE')">LIVE MARKET</button>
     </div>
 
-    <script>
-        const API_BASE = window.location.origin;
+    <div class="row">
+      <div class="field">
+        <label>BROKER</label>
+        <select id="broker">
+          <option>Pocket Option</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>TRADING PAIR</label>
+        <select id="pair">
+          <option>EUR/USD</option>
+          <option>GBP/USD</option>
+          <option>BTC/USD</option>
+          <option>USD/JPY</option>
+          <option>AUD/CAD</option>
+        </select>
+      </div>
+    </div>
 
-        async function triggerAiSignal() {
-            const pair = document.getElementById('botPairSelect').value;
-            const timeframe = parseInt(document.getElementById('botTfSelect').value);
-            document.getElementById('currentPairDisplay.textContent') = pair;
-            
-            // Random simulated prices for 50/50 balance
-            const base = 1.0850 + Math.random() * 0.0030;
-            const prices = [base - 0.0003, base - 0.0001, base + 0.0002, base + (Math.random() > 0.5 ? 0.0004 : -0.0004)];
+    <div class="row">
+      <div class="field">
+        <label>TIMEFRAME</label>
+        <select id="timeframe">
+          <option>1 Minute</option>
+          <option>3 Minutes</option>
+          <option>5 Minutes</option>
+          <option>15 Minutes</option>
+        </select>
+      </div>
+    </div>
+  </div>
 
-            document.getElementById('signalStateText').textContent = "ANALYZING...";
-            document.getElementById('mainSignalOutput').textContent = "WAIT...";
+  <div class="panel">
+    <h2>〰 AI SIGNAL ENGINE</h2>
+    <div class="small">Signal engine status</div>
 
-            try {
-                const res = await fetch(`${API_BASE}/analyze`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ pair, timeframe, prices })
-                });
-                const data = await res.json();
-                
-                setTimeout(() => {
-                    document.getElementById('signalStateText').textContent = "SIGNAL READY";
-                    const sigEl = document.getElementById('mainSignalOutput');
-                    sigEl.textContent = data.signal;
-                    sigEl.className = `text-2xl font-extrabold ${data.signal === 'CALL' ? 'text-emerald-400' : 'text-rose-400'}`;
-                    logMsg(`AI Signal for ${pair} (${timeframe}s): -> ${data.signal}`);
-                }, 600);
+    <div class="engine">
+      <div class="small">BOT STATUS</div>
+      <div class="bolt">ϟ</div>
+      <div id="signal" class="neutral">STANDBY</div>
+      <div class="small" id="message">Press START BOT</div>
+    </div>
 
-            } catch(e) {
-                document.getElementById('signalStateText').textContent = "ERROR";
-                logMsg("Error fetching signal: " + e.message);
-            }
-        }
+    <button class="mainbtn" id="start" onclick="startBot()">
+      ▶ START BOT
+    </button>
+    <div style="height:10px"></div>
+    <button class="stopbtn" onclick="stopBot()">■ STOP BOT</button>
+  </div>
 
-        async function executeTrade(action) {
-            const pair = document.getElementById('botPairSelect').value;
-            const duration = parseInt(document.getElementById('botTfSelect').value);
-            const amount = parseFloat(document.getElementById('tradeAmount').value);
+  <div class="panel">
+    <h3>📊 SIGNAL DETAILS</h3>
+    <div class="history" id="details">
+      Pair: —<br>
+      Market: —<br>
+      Timeframe: —<br>
+      Direction: —<br>
+      Expiry: —
+    </div>
+  </div>
 
-            try {
-                const res = await fetch(`${API_BASE}/trade`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ pair, action, amount, duration })
-                });
-                const data = await res.json();
-                if(res.ok) {
-                    logMsg(`✅ Executed ${action} on ${pair} (${duration}s) for $${amount}`);
-                } else {
-                    logMsg(`❌ Trade failed: ${data.detail}`);
-                }
-            } catch(e) {
-                logMsg("Trade error: " + e.message);
-            }
-        }
+  <div class="panel">
+    <h3>📜 SIGNAL HISTORY</h3>
+    <div id="history" class="history">No signals yet.</div>
+  </div>
 
-        function logMsg(txt) {
-            const box = document.getElementById('logBox');
-            const time = new Date().toLocaleTimeString();
-            box.innerHTML += `<div>[${time}] ${txt}</div>`;
-            box.scrollTop = box.scrollHeight;
-        }
-    </script>
+  <p class="note">
+    Important: Yeh front-end demo hai. Signals random demo examples hain,
+    real market analysis nahi. Pocket Option API connected nahi hai.
+    Real trading se pehle verified live price data aur tested signal
+    logic zaroori hai. Profit ya win rate guaranteed nahi hai.
+  </p>
+
+</div>
+
+<script>
+let market = "OTC";
+let running = false;
+let timer = null;
+
+function setMarket(value){
+  market = value;
+  document.getElementById("otc").classList.toggle(
+    "active", value === "OTC"
+  );
+  document.getElementById("live").classList.toggle(
+    "active", value === "LIVE"
+  );
+}
+
+function startBot(){
+  if(running) return;
+
+  running = true;
+  document.getElementById("status").textContent =
+    "Demo Running";
+  document.getElementById("message").textContent =
+    "Demo mode — no live data";
+  document.getElementById("start").disabled = true;
+
+  // Demo signals only — not real trading advice.
+  showDemoSignal();
+  timer = setInterval(showDemoSignal, 15000);
+}
+
+function showDemoSignal(){
+  if(!running) return;
+
+  const direction = Math.random() < 0.5 ? "BUY" : "SELL";
+  const signal = document.getElementById("signal");
+
+  signal.textContent = direction + " (DEMO)";
+  signal.className = direction === "BUY" ? "buy" : "sell";
+
+  document.getElementById("message").textContent =
+    "Example only — verify live data";
+
+  const pair = document.getElementById("pair").value;
+  const tf = document.getElementById("timeframe").value;
+
+  document.getElementById("details").innerHTML =
+    "Pair: " + pair + "<br>" +
+    "Market: " + market + "<br>" +
+    "Timeframe: " + tf + "<br>" +
+    "Direction: " + direction + "<br>" +
+    "Expiry: " + tf;
+
+  const history = document.getElementById("history");
+  const entry = document.createElement("div");
+  entry.textContent = new Date().toLocaleTimeString() +
+    " | " + pair + " | " + direction + " (DEMO)";
+  history.prepend(entry);
+
+  while(history.children.length > 10){
+    history.removeChild(history.lastChild);
+  }
+}
+
+function stopBot(){
+  running = false;
+  clearInterval(timer);
+  timer = null;
+
+  document.getElementById("status").textContent = "Standby";
+  document.getElementById("signal").textContent = "STANDBY";
+  document.getElementById("signal").className = "neutral";
+  document.getElementById("message").textContent =
+    "Press START BOT";
+  document.getElementById("start").disabled = false;
+}
+</script>
 </body>
-                    </html>
-                    
+</html>
+
