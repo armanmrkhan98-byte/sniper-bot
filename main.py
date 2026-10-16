@@ -1,7 +1,10 @@
+
+                            
 import os
 import time
 import numpy as np
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 app = FastAPI(
@@ -33,7 +36,7 @@ VALID_TIMEFRAMES = [3, 5, 15, 30, 60, 120, 180, 240, 300]
 class SignalRequest(BaseModel):
     pair: str
     timeframe: int
-    prices: list[float]  # Last candle closing prices for analysis
+    prices: list[float]
 
 class TradeRequest(BaseModel):
     pair: str
@@ -41,15 +44,13 @@ class TradeRequest(BaseModel):
     amount: float = 1.0
     duration: int = 60
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def home():
-    return {
-        "status": "online",
-        "bot_name": "Pocket Option Pro OTC Bot",
-        "active": BOT_STATE["is_running"],
-        "supported_pairs_count": len(OTC_PAIRS),
-        "supported_timeframes_seconds": VALID_TIMEFRAMES
-    }
+    try:
+        with open("index.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception:
+        return "<h3>Pocket Option OTC Bot is Running! (index.html not found)</h3>"
 
 @app.get("/pairs")
 def get_pairs():
@@ -75,17 +76,15 @@ def analyze_market(req: SignalRequest):
         raise HTTPException(status_code=400, detail=f"Invalid OTC pair: {req.pair}")
     
     if req.timeframe not in VALID_TIMEFRAMES:
-        raise HTTPException(status_code=400, detail=f"Invalid timeframe: {req.timeframe}s. Supports 3s up to 300s (including 4m/240s).")
+        raise HTTPException(status_code=400, detail=f"Invalid timeframe: {req.timeframe}s")
     
     if not req.prices or len(req.prices) < 2:
-        return {"signal": "HOLD", "reason": "Insufficient price data for analysis"}
+        return {"signal": "HOLD", "current_price": 0.0, "benchmark_sma": 0.0}
 
-    # NumPy vector calculation for trend/signal
     arr = np.array(req.prices, dtype=float)
     sma = np.mean(arr)
     current_price = arr[-1]
 
-    # Simple moving average crossover logic
     signal = "CALL" if current_price > sma else "PUT"
     
     return {
@@ -123,4 +122,4 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
-                            
+    
